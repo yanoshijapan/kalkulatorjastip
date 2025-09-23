@@ -490,26 +490,24 @@
             // 1. Hitung Harga Jastip
             const hargaJastip = kilo * 1500;
 
-            // 2. Hitung Biaya Ongkir dengan kelipatan 30kg
-            // Logika baru sesuai permintaan:
-            // - 0kg < berat <= 30kg -> ongkir x 1
-            // - 30kg < berat <= 60kg -> ongkir x 2
-            // - 60kg < berat <= 90kg -> ongkir x 3, dan seterusnya.
-            // Math.ceil(kilo / 30) secara otomatis menangani logika ini.
-            // Contoh: Math.ceil(35 / 30) = Math.ceil(1.16) = 2.
-            const ongkirMultiplier = Math.ceil(kilo / 30);
-            const finalOngkir = baseOngkir * ongkirMultiplier;
+            // Tentukan pengali berdasarkan berat (untuk ongkir dan box)
+            // Logikanya: 1-30kg -> x1, 31-60kg -> x2, dst.
+            const multiplier = Math.ceil(kilo / 30);
 
-            // 3. Biaya Box Yamato
-            const biayaBox = 370;
+            // 2. Hitung Biaya Ongkir final
+            const finalOngkir = baseOngkir * multiplier;
+
+            // 3. Hitung Biaya Box Yamato final
+            const baseBiayaBox = 370;
+            const finalBiayaBox = baseBiayaBox * multiplier;
             
             // 4. Total Biaya
-            const totalBiaya = hargaJastip + finalOngkir + biayaBox;
+            const totalBiaya = hargaJastip + finalOngkir + finalBiayaBox;
 
             // Tampilkan hasil di modal
             document.getElementById('harga-jastip-result').textContent = formatRupiah(hargaJastip);
             document.getElementById('biaya-ongkir-result').textContent = formatRupiah(finalOngkir);
-            document.getElementById('biaya-box-result').textContent = formatRupiah(biayaBox);
+            document.getElementById('biaya-box-result').textContent = formatRupiah(finalBiayaBox);
             document.getElementById('total-biaya-result').textContent = formatRupiah(totalBiaya);
 
             // Buka modal
