@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Jastip</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset and Basic Setup */
+        :root {
+            --primary-blue: #076eb3;
+            --accent-orange: #f0a92d;
+            --light-gray: #f4f7f9;
+            --dark-gray: #333;
+            --white: #ffffff;
+            --shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--white);
+            color: var(--dark-gray);
+            line-height: 1.6;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Animated Background Gradient */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(45deg, #e6f7ff, #fdf8e1, #e6f7ff, #fdf8e1);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Header */
+        .app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            background-color: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+            animation: slideDown 0.7s ease-out;
+        }
+
+        .logo img {
+            height: 40px;
+            transition: transform 0.3s ease;
+        }
+        .logo img:hover {
+            transform: scale(1.1);
+        }
+
+        .header-button {
+            background: linear-gradient(45deg, var(--accent-orange), #ffc107);
+            color: var(--white);
+            padding: 0.7rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(240, 169, 45, 0.4);
+        }
+        .header-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(240, 169, 45, 0.6);
+        }
+        
+        /* Main Container */
+        .container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 8rem 2rem 2rem 2rem;
+        }
+
+        /* Calculator Card */
+        .calculator-card {
+            width: 100%;
+            max-width: 500px;
+            background: var(--white);
+            padding: 2.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            animation: popIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+        
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.8) translateY(50px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .calculator-card h1 {
+            color: var(--primary-blue);
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            color: var(--primary-blue);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 0 3px rgba(240, 169, 45, 0.2);
+        }
+        
+        .form-group input[readonly] {
+            background-color: var(--light-gray);
+            cursor: not-allowed;
+            color: #888;
+        }
+
+        /* Searchable Dropdown */
+        .dropdown {
+            position: relative;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: var(--white);
+            min-width: 100%;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+            max-height: 200px;
+            overflow-y: auto;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            margin-top: 5px;
+        }
+
+        .dropdown-content a {
+            color: var(--dark-gray);
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-content a:hover {
+            background-color: var(--light-gray);
+            color: var(--primary-blue);
+        }
+
+        /* Calculate Button */
+        .calculate-btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, var(--primary-blue), #0a84e0);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+            box-shadow: 0 4px 15px rgba(7, 110, 179, 0.4);
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(7, 110, 179, 0.6);
+        }
+
+        /* Modal Popup */
+        .modal {
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background-color: var(--white);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal.show .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h2 {
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+        }
+        
+        .result-detail {
+            text-align: left;
+            margin-bottom: 1.5rem;
+        }
+
+        .result-detail p {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #eee;
+            font-size: 1rem;
+        }
+        
+        .result-detail p:last-child {
+            border-bottom: none;
+        }
+
+        .result-detail p span:first-child {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .result-detail p span:last-child {
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+
+        .total-biaya {
+            background-color: var(--light-gray);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .total-biaya p {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        
+        .total-biaya p span:first-child {
+            color: var(--primary-blue);
+        }
+        
+        .total-biaya p span:last-child {
+            color: var(--accent-orange);
+        }
+        
+        .tax-note {
+            font-size: 0.8rem;
+            color: #888;
+            font-style: italic;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            background-color: var(--accent-orange);
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .close-btn:hover {
+            opacity: 0.9;
+            transform: scale(1.05);
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Tetap -->
+    <header class="app-header">
+        <a href="https://yanoshijapan.github.io/asetonline/jastiplogo.png" target="_blank" class="logo">
+            <img src="https://yanoshijapan.github.io/asetonline/jastiplogo.png" alt="Logo Jastip">
+        </a>
+        <a href="https://jastipyanoshi.netlify.app/" target="_blank" class="header-button">Buka Website</a>
+    </header>
+
+    <!-- Kontainer Utama -->
+    <main class="container">
+        <div class="calculator-card">
+            <h1>Kalkulator Jastip</h1>
+            
+            <!-- Form Perhitungan -->
+            <form id="jastip-form" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="kilo">Ketik berapa KG yang ingin kamu jastip (ketik angka saja semisal : 15)</label>
+                    <input type="number" id="kilo" name="kilo" placeholder="Contoh: 15" min="0" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="prefecture-search">Dikirim ke perfektur mana?</label>
+                    <div class="dropdown">
+                        <input type="text" id="prefecture-search" name="prefecture" placeholder="Cari perfektur..." autocomplete="off" required>
+                        <div id="prefecture-dropdown" class="dropdown-content">
+                            <!-- Options will be populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ongkir">Biaya Ongkir</label>
+                    <input type="text" id="ongkir" name="ongkir" readonly placeholder="Terisi otomatis">
+                </div>
+
+                <button type="button" class="calculate-btn" onclick="calculateTotal()">Hitung Total Biaya</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- Modal Popup untuk Hasil Perhitungan -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <h2>Detail Biaya Jastip</h2>
+            <div class="result-detail">
+                <p><span>Harga Jastip</span> <span id="harga-jastip-result"></span></p>
+                <p><span>Biaya Ongkir</span> <span id="biaya-ongkir-result"></span></p>
+                <p><span>Biaya Box Yamato</span> <span id="biaya-box-result"></span></p>
+            </div>
+            <div class="total-biaya">
+                <p><span>TOTAL BIAYA</span> <span id="total-biaya-result"></span></p>
+            </div>
+            <p class="tax-note">harga belum termasuk tax 10% dari yamato bandara narita</p>
+            <button class="close-btn" onclick="closeModal()">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        // Data Biaya Ongkir per Perfektur
+        const shippingCosts = {
+            'hokkaido': 1060, 'aomori': 1060, 'akita': 1060, 'iwate': 1060,
+            'miyagi': 940, 'yamagata': 940, 'fukushima': 940,
+            'tokyo': 940, 'ibaraki': 940, 'tochigi': 940, 'gunma': 940, 'saitama': 940, 'chiba': 940, 'kanagawa': 940, 'yamanashi': 940,
+            'nagano': 940, 'niigata': 940,
+            'toyama': 940, 'ishikawa': 940, 'fukui': 940,
+            'shizuoka': 940, 'aichi': 940, 'gifu': 940, 'mie': 940,
+            'kyoto': 1060, 'shiga': 1060, 'nara': 1060, 'wakayama': 1060, 'osaka': 1060, 'hyogo': 1060,
+            'okayama': 1190, 'hiroshima': 1190, 'yamaguchi': 1190, 'tottori': 1190, 'shimane': 1190,
+            'kagawa': 1190, 'tokushima': 1190, 'kochi': 1190, 'ehime': 1190,
+            'fukuoka': 1190, 'saga': 1190, 'nagasaki': 1190, 'kumamoto': 1190, 'oita': 1190, 'miyazaki': 1190, 'kagoshima': 1190,
+            'okinawa': 1460
+        };
+
+        const prefectures = Object.keys(shippingCosts);
+
+        // Elemen DOM
+        const prefectureSearchInput = document.getElementById('prefecture-search');
+        const prefectureDropdown = document.getElementById('prefecture-dropdown');
+        const ongkirInput = document.getElementById('ongkir');
+        const kiloInput = document.getElementById('kilo');
+        const modal = document.getElementById('result-modal');
+
+        // Fungsi untuk mengisi dropdown
+        function populateDropdown(filter = '') {
+            prefectureDropdown.innerHTML = '';
+            const filteredPrefectures = prefectures.filter(p => p.toLowerCase().includes(filter.toLowerCase()));
+            
+            filteredPrefectures.forEach(pref => {
+                const a = document.createElement('a');
+                a.href = '#';
+                a.textContent = pref.charAt(0).toUpperCase() + pref.slice(1);
+                a.onclick = (e) => {
+                    e.preventDefault();
+                    selectPrefecture(pref);
+                };
+                prefectureDropdown.appendChild(a);
+            });
+        }
+
+        // Event listener untuk input search
+        prefectureSearchInput.addEventListener('keyup', () => {
+            populateDropdown(prefectureSearchInput.value);
+            prefectureDropdown.style.display = 'block';
+        });
+
+        prefectureSearchInput.addEventListener('focus', () => {
+            populateDropdown(prefectureSearchInput.value);
+            prefectureDropdown.style.display = 'block';
+        });
+
+        // Menutup dropdown jika klik di luar
+        document.addEventListener('click', (e) => {
+            if (!prefectureSearchInput.contains(e.target) && !prefectureDropdown.contains(e.target)) {
+                prefectureDropdown.style.display = 'none';
+            }
+        });
+
+        // Fungsi saat memilih perfektur
+        function selectPrefecture(prefecture) {
+            prefectureSearchInput.value = prefecture.charAt(0).toUpperCase() + prefecture.slice(1);
+            prefectureDropdown.style.display = 'none';
+            
+            const cost = shippingCosts[prefecture.toLowerCase()];
+            if (cost) {
+                ongkirInput.value = cost;
+            }
+        }
+        
+        // Fungsi format Rupiah
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'JPY', // Menggunakan JPY karena biaya dalam Yen
+                minimumFractionDigits: 0
+            }).format(number).replace('JPY', '¥');
+        }
+
+        // Fungsi untuk menghitung total biaya
+        function calculateTotal() {
+            // Validasi
+            const kilo = parseFloat(kiloInput.value);
+            const baseOngkir = parseFloat(ongkirInput.value);
+
+            if (isNaN(kilo) || kilo <= 0 || isNaN(baseOngkir)) {
+                alert('Mohon isi berat (KG) dan pilih perfektur tujuan dengan benar.');
+                return;
+            }
+
+            // 1. Hitung Harga Jastip
+            const hargaJastip = kilo * 1500;
+
+            // 2. Hitung Biaya Ongkir dengan kelipatan 30kg
+            // Logika baru sesuai permintaan:
+            // - 0kg < berat <= 30kg -> ongkir x 1
+            // - 30kg < berat <= 60kg -> ongkir x 2
+            // - 60kg < berat <= 90kg -> ongkir x 3, dan seterusnya.
+            // Math.ceil(kilo / 30) secara otomatis menangani logika ini.
+            // Contoh: Math.ceil(35 / 30) = Math.ceil(1.16) = 2.
+            const ongkirMultiplier = Math.ceil(kilo / 30);
+            const finalOngkir = baseOngkir * ongkirMultiplier;
+
+            // 3. Biaya Box Yamato
+            const biayaBox = 370;
+            
+            // 4. Total Biaya
+            const totalBiaya = hargaJastip + finalOngkir + biayaBox;
+
+            // Tampilkan hasil di modal
+            document.getElementById('harga-jastip-result').textContent = formatRupiah(hargaJastip);
+            document.getElementById('biaya-ongkir-result').textContent = formatRupiah(finalOngkir);
+            document.getElementById('biaya-box-result').textContent = formatRupiah(biayaBox);
+            document.getElementById('total-biaya-result').textContent = formatRupiah(totalBiaya);
+
+            // Buka modal
+            modal.classList.add('show');
+        }
+
+        // Fungsi untuk menutup modal
+        function closeModal() {
+            modal.classList.remove('show');
+        }
+
+        // Inisialisasi
+        populateDropdown();
+    </script>
+</body>
+</html>
+
