@@ -126,7 +126,7 @@
             color: var(--primary-blue);
             text-align: center;
             margin-bottom: 0.5rem;
-            font-size: 1.9rem;
+            font-size: 1.8rem;
             font-weight: 700;
         }
 
@@ -308,6 +308,30 @@
             color: var(--accent-orange);
         }
         
+        /* New Styles for Box Note and Image */
+        .box-note {
+            font-size: 0.85rem;
+            color: #555;
+            background-color: #fff9e6;
+            border-left: 4px solid var(--accent-orange);
+            padding: 0.75rem;
+            border-radius: 4px;
+            margin: 1.5rem 0 1rem 0;
+            text-align: left;
+        }
+
+        .image-container {
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
         .tax-note {
             font-size: 0.8rem;
             color: #888;
@@ -355,7 +379,7 @@
             <!-- Form Perhitungan -->
             <form id="jastip-form" onsubmit="return false;">
                 <div class="form-group">
-                    <label for="kilo">Ketik berapa KG yang ingin kamu jastip (ketik angka saja semisal : 15)</label>
+                    <label for="kilo">Ketik perkiraan berapa KG yang ingin kamu jastip (ketik angka saja semisal : 15)</label>
                     <input type="number" id="kilo" name="kilo" placeholder="Contoh: 15" min="0" required>
                 </div>
                 
@@ -370,7 +394,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="ongkir">Biaya Ongkir</label>
+                    <label for="ongkir">Biaya Ongkir Akan Muncul Dibawah Sini</label>
                     <input type="text" id="ongkir" name="ongkir" readonly placeholder="Terisi otomatis">
                 </div>
 
@@ -386,12 +410,20 @@
             <div class="result-detail">
                 <p><span>Harga Jastip</span> <span id="harga-jastip-result"></span></p>
                 <p><span>Biaya Ongkir</span> <span id="biaya-ongkir-result"></span></p>
-                <p><span>Biaya Box Yamato</span> <span id="biaya-box-result"></span></p>
+                <!-- Baris Biaya Box Yamato telah dihapus dari sini -->
             </div>
             <div class="total-biaya">
                 <p><span>TOTAL BIAYA</span> <span id="total-biaya-result"></span></p>
             </div>
-            <p class="tax-note">harga belum termasuk tax 10% dari yamato bandara narita</p>
+            
+            <!-- Elemen baru ditambahkan di sini -->
+            <p class="box-note">Harga di atas belum termasuk box kirim Yamato, harga box disesuaikan dari berat dan dimensi barang.</p>
+            <div class="image-container">
+                <!-- Ganti URL src di bawah ini jika Anda punya gambar lain -->
+                <img id="box-image" src="https://yanoshijapan.github.io/asetonline/boxs.png" alt="Ukuran Box Yamato">
+            </div>
+
+            <p class="tax-note">Harga belum termasuk tax 10% dari Yamato Bandara Narita.</p>
             <button class="close-btn" onclick="closeModal()">Tutup</button>
         </div>
     </div>
@@ -490,24 +522,18 @@
             // 1. Hitung Harga Jastip
             const hargaJastip = kilo * 1500;
 
-            // Tentukan pengali berdasarkan berat (untuk ongkir dan box)
-            // Logikanya: 1-30kg -> x1, 31-60kg -> x2, dst.
+            // Tentukan pengali berdasarkan berat
             const multiplier = Math.ceil(kilo / 30);
 
             // 2. Hitung Biaya Ongkir final
             const finalOngkir = baseOngkir * multiplier;
 
-            // 3. Hitung Biaya Box Yamato final
-            const baseBiayaBox = 370;
-            const finalBiayaBox = baseBiayaBox * multiplier;
-            
-            // 4. Total Biaya
-            const totalBiaya = hargaJastip + finalOngkir + finalBiayaBox;
+            // 3. Total Biaya (tanpa biaya box)
+            const totalBiaya = hargaJastip + finalOngkir;
 
             // Tampilkan hasil di modal
             document.getElementById('harga-jastip-result').textContent = formatRupiah(hargaJastip);
             document.getElementById('biaya-ongkir-result').textContent = formatRupiah(finalOngkir);
-            document.getElementById('biaya-box-result').textContent = formatRupiah(finalBiayaBox);
             document.getElementById('total-biaya-result').textContent = formatRupiah(totalBiaya);
 
             // Buka modal
