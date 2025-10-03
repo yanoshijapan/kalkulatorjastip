@@ -473,8 +473,8 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="ongkir">Biaya Dasar Ongkir</label>
-                    <input type="text" id="ongkir" name="ongkir" readonly placeholder="Biaya ongkir akan muncul disini">
+                    <label for="ongkir">Estimasi Ongkir (mulai dari)</label>
+                    <input type="text" id="ongkir" name="ongkir" readonly placeholder="Pilih perfektur untuk melihat estimasi">
                 </div>
 
                 <button type="button" class="calculate-btn" onclick="calculateTotal()">Hitung Total Biaya</button>
@@ -512,32 +512,74 @@
     </div>
 
     <script>
-        // Data Biaya Ongkir per Perfektur
+        // === [START] PERUBAHAN LOGIKA PERHITUNGAN ===
+
+        // 1. STRUKTUR DATA BARU UNTUK ONGKIR
+        // Data ongkir diubah menjadi array of object untuk setiap prefektur.
+        // Setiap object memiliki `maxWeight` (batas atas berat) dan `cost` (harga).
+        // `Infinity` digunakan untuk menangani berat "di atas" batas terakhir.
+
+        const tierGroup1 = [
+            { maxWeight: 2, cost: 1460 }, { maxWeight: 5, cost: 1740 },
+            { maxWeight: 10, cost: 2050 }, { maxWeight: 15, cost: 2610 },
+            { maxWeight: 20, cost: 3250 }, { maxWeight: 25, cost: 3630 },
+            { maxWeight: 30, cost: 5220 }, { maxWeight: Infinity, cost: 6540 }
+        ];
+        const tierGroup2 = [
+            { maxWeight: 2, cost: 1060 }, { maxWeight: 5, cost: 1350 },
+            { maxWeight: 10, cost: 1650 }, { maxWeight: 15, cost: 2170 },
+            { maxWeight: 20, cost: 2780 }, { maxWeight: 25, cost: 3160 },
+            { maxWeight: 30, cost: 4480 }, { maxWeight: Infinity, cost: 5410 }
+        ];
+        const tierGroup3 = [
+            { maxWeight: 2, cost: 940 }, { maxWeight: 5, cost: 1230 },
+            { maxWeight: 10, cost: 1530 }, { maxWeight: 15, cost: 2040 },
+            { maxWeight: 20, cost: 2630 }, { maxWeight: 25, cost: 3020 },
+            { maxWeight: 30, cost: 3680 }, { maxWeight: Infinity, cost: 4470 }
+        ];
+        const tierGroup4 = [
+            { maxWeight: 2, cost: 1190 }, { maxWeight: 5, cost: 1480 },
+            { maxWeight: 10, cost: 1790 }, { maxWeight: 15, cost: 2310 },
+            { maxWeight: 20, cost: 2930 }, { maxWeight: 25, cost: 3320 },
+            { maxWeight: 30, cost: 4900 }, { maxWeight: Infinity, cost: 6220 }
+        ];
+        const okinawaTiers = [
+            { maxWeight: 2, cost: 1460 }, { maxWeight: 5, cost: 2070 },
+            { maxWeight: 10, cost: 2710 }, { maxWeight: 15, cost: 3360 },
+            { maxWeight: 20, cost: 4030 }, { maxWeight: 25, cost: 4680 },
+            { maxWeight: 30, cost: 7210 }, { maxWeight: Infinity, cost: 8860 }
+        ];
+
         const shippingCosts = {
-            'hokkaido': 1060, 'aomori': 1060, 'akita': 1060, 'iwate': 1060,
-            'miyagi': 940, 'yamagata': 940, 'fukushima': 940,
-            'tokyo': 940, 'ibaraki': 940, 'tochigi': 940, 'gunma': 940, 'saitama': 940, 'chiba': 940, 'kanagawa': 940, 'yamanashi': 940,
-            'nagano': 940, 'niigata': 940,
-            'toyama': 940, 'ishikawa': 940, 'fukui': 940,
-            'shizuoka': 940, 'aichi': 940, 'gifu': 940, 'mie': 940,
-            'kyoto': 1060, 'shiga': 1060, 'nara': 1060, 'wakayama': 1060, 'osaka': 1060, 'hyogo': 1060,
-            'okayama': 1190, 'hiroshima': 1190, 'yamaguchi': 1190, 'tottori': 1190, 'shimane': 1190,
-            'kagawa': 1190, 'tokushima': 1190, 'kochi': 1190, 'ehime': 1190,
-            'fukuoka': 1190, 'saga': 1190, 'nagasaki': 1190, 'kumamoto': 1190, 'oita': 1190, 'miyazaki': 1190, 'kagoshima': 1190,
-            'okinawa': 1460
+            'hokkaido': tierGroup1,
+            'aomori': tierGroup2, 'akita': tierGroup2, 'iwate': tierGroup2,
+            'miyagi': tierGroup3, 'yamagata': tierGroup3, 'fukushima': tierGroup3,
+            'tokyo': tierGroup3, 'ibaraki': tierGroup3, 'tochigi': tierGroup3,
+            'gunma': tierGroup3, 'saitama': tierGroup3, 'chiba': tierGroup3,
+            'kanagawa': tierGroup3, 'yamanashi': tierGroup3, 'nagano': tierGroup3,
+            'niigata': tierGroup3, 'toyama': tierGroup3, 'ishikawa': tierGroup3,
+            'fukui': tierGroup3, 'shizuoka': tierGroup3, 'aichi': tierGroup3,
+            'gifu': tierGroup3, 'mie': tierGroup3,
+            'kyoto': tierGroup2, 'shiga': tierGroup2, 'nara': tierGroup2,
+            'wakayama': tierGroup2, 'osaka': tierGroup2, 'hyogo': tierGroup2,
+            'okayama': tierGroup4, 'hiroshima': tierGroup4, 'yamaguchi': tierGroup4,
+            'tottori': tierGroup4, 'shimane': tierGroup4, 'kagawa': tierGroup4,
+            'tokushima': tierGroup4, 'kochi': tierGroup4, 'ehime': tierGroup4,
+            'fukuoka': tierGroup1, 'saga': tierGroup1, 'nagasaki': tierGroup1,
+            'kumamoto': tierGroup1, 'oita': tierGroup1, 'miyazaki': tierGroup1,
+            'kagoshima': tierGroup1,
+            'okinawa': okinawaTiers
         };
 
-        // === PERUBAHAN: Konfigurasi Jastip dengan Estimasi Berat per Unit (dalam KG) ===
-        // weightPerUnit digunakan untuk menghitung ongkir secara otomatis
         const jastipConfigs = {
-            'biasa':         { label: 'Berapa KG berat barangmu?',         price: 1500, unit: 'kg',    weightPerUnit: 1 },
-            'handphone':     { label: 'Berapa unit?',                      price: 2000, unit: 'unit',  weightPerUnit: 0.5 },
-            'laptop':        { label: 'Berapa KG berat laptop/tabletmu?',  price: 1500, unit: 'kg',    weightPerUnit: 1 },
-            'rokok':         { label: 'Berapa slop?',                      price: 2000, unit: 'slop',  weightPerUnit: 0.3 },
-            'rokok-elektrik':{ label: 'Berapa unit?',                      price: 1000, unit: 'unit',  weightPerUnit: 0.4 },
-            'liquid':        { label: 'Berapa unit?',                      price: 500,  unit: 'unit',  weightPerUnit: 0.2 },
-            'sepatu-box':    { label: 'Berapa pasang?',                    price: 2000, unit: 'pasang',weightPerUnit: 1.2 },
-            'sepatu-nobox':  { label: 'Berapa pasang?',                    price: 1500, unit: 'pasang',weightPerUnit: 0.8 }
+            'biasa': { label: 'Berapa KG berat barangmu?', price: 1500, unit: 'kg', weightPerUnit: 1 },
+            'handphone': { label: 'Berapa unit?', price: 2000, unit: 'unit', weightPerUnit: 0.5 },
+            'laptop': { label: 'Berapa KG berat laptop/tabletmu?', price: 1500, unit: 'kg', weightPerUnit: 1 },
+            'rokok': { label: 'Berapa slop?', price: 2000, unit: 'slop', weightPerUnit: 0.3 },
+            'rokok-elektrik':{ label: 'Berapa unit?', price: 1000, unit: 'unit', weightPerUnit: 0.4 },
+            'liquid': { label: 'Berapa unit?', price: 500, unit: 'unit', weightPerUnit: 0.2 },
+            'sepatu-box': { label: 'Berapa pasang?', price: 2000, unit: 'pasang', weightPerUnit: 1.2 },
+            'sepatu-nobox': { label: 'Berapa pasang?', price: 1500, unit: 'pasang', weightPerUnit: 0.8 }
         };
 
         const prefectures = Object.keys(shippingCosts);
@@ -561,7 +603,7 @@
                 jastipDetailsContainer.innerHTML = `
                     <div class="form-group">
                         <label for="jastip-quantity">${config.label}</label>
-                        <input type="tel" id="jastip-quantity" name="jastip-quantity" placeholder="Contoh: 1" min="0" required>
+                        <input type="number" id="jastip-quantity" name="jastip-quantity" placeholder="Contoh: 1" min="0" step="any" required>
                     </div>
                 `;
             } else {
@@ -603,13 +645,16 @@
             }
         });
 
+        // 2. MODIFIKASI FUNGSI `selectPrefecture`
+        // Saat prefektur dipilih, tampilkan harga terendah (untuk berat s.d. 2kg)
         function selectPrefecture(prefecture) {
             prefectureSearchInput.value = prefecture.charAt(0).toUpperCase() + prefecture.slice(1);
             prefectureDropdown.style.display = 'none';
             
-            const cost = shippingCosts[prefecture.toLowerCase()];
-            if (cost) {
-                ongkirInput.value = formatRupiah(cost); // Tampilkan biaya dasar dengan format
+            const tiers = shippingCosts[prefecture.toLowerCase()];
+            if (tiers && tiers.length > 0) {
+                const baseCost = tiers[0].cost; // Ambil biaya pertama (termurah)
+                ongkirInput.value = formatRupiah(baseCost) + ' (untuk ~2kg)';
             }
         }
         
@@ -621,11 +666,24 @@
             }).format(number).replace('JPY', '¥');
         }
 
-        // === FUNGSI PERHITUNGAN DIMODIFIKASI TOTAL ===
+        // 3. FUNGSI BARU UNTUK MENDAPATKAN ONGKIR BERDASARKAN BERAT
+        function getCostByWeight(weight, tiers) {
+            if (!tiers) return null; // Jika data tier tidak ditemukan
+
+            // Cari tier pertama yang `maxWeight`-nya lebih besar atau sama dengan berat estimasi
+            for (const tier of tiers) {
+                if (weight <= tier.maxWeight) {
+                    return tier.cost;
+                }
+            }
+            return null; // Seharusnya tidak terjadi jika ada tier Infinity
+        }
+
+        // 4. FUNGSI PERHITUNGAN UTAMA DIMODIFIKASI
         function calculateTotal() {
             // Data untuk Ongkir
             const prefecture = prefectureSearchInput.value.toLowerCase();
-            const baseOngkir = shippingCosts[prefecture];
+            const priceTiers = shippingCosts[prefecture];
             
             // Data untuk Harga Jastip
             const selectedType = itemTypeSelect.value;
@@ -639,7 +697,7 @@
             
             const jastipQuantity = parseFloat(jastipQuantityInput.value);
 
-            if (isNaN(baseOngkir) || isNaN(jastipQuantity) || jastipQuantity <= 0) {
+            if (!priceTiers || isNaN(jastipQuantity) || jastipQuantity <= 0) {
                 alert('Mohon isi semua kolom (jenis barang, jumlah/berat, dan perfektur) dengan benar.');
                 return;
             }
@@ -652,9 +710,13 @@
             // 2. Hitung Estimasi Berat Total
             const estimatedWeight = jastipQuantity * config.weightPerUnit;
 
-            // 3. Hitung Ongkir berdasarkan estimasi berat
-            const multiplier = Math.ceil(estimatedWeight / 30);
-            const finalOngkir = baseOngkir * multiplier;
+            // 3. Hitung Ongkir berdasarkan estimasi berat menggunakan fungsi baru
+            const finalOngkir = getCostByWeight(estimatedWeight, priceTiers);
+            
+            if (finalOngkir === null) {
+                alert('Tidak dapat menghitung ongkir. Periksa kembali input Anda.');
+                return;
+            }
 
             // 4. Hitung Total Biaya
             const totalBiaya = hargaJastip + finalOngkir;
@@ -666,6 +728,8 @@
 
             modal.classList.add('show');
         }
+
+        // === [END] PERUBAHAN LOGIKA PERHITUNGAN ===
 
         function closeModal() {
             modal.classList.remove('show');
