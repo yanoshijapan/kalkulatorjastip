@@ -523,39 +523,60 @@
         // `Infinity` digunakan untuk menangani berat "di atas" batas terakhir.
 
         const tierGroup1 = [
-            { maxWeight: 2, cost: 1460 }, { maxWeight: 5, cost: 1740 },
-            { maxWeight: 10, cost: 2050 }, { maxWeight: 15, cost: 2610 },
-            { maxWeight: 20, cost: 3250 }, { maxWeight: 25, cost: 3630 },
-            { maxWeight: 30, cost: 5220 }, { maxWeight: Infinity, cost: 6540 }
+            { maxWeight: 2, cost: 2020 }, 
+            { maxWeight: 5, cost: 2300 },
+            { maxWeight: 10, cost: 2610 }, 
+            { maxWeight: 15, cost: 3170 },
+            { maxWeight: 20, cost: 3810 }, 
+            { maxWeight: 25, cost: 4190 },
+            { maxWeight: 30, cost: 5780 }, 
+            { maxWeight: Infinity, cost: 7100 }
         ];
         const tierGroup2 = [
-            { maxWeight: 2, cost: 1060 }, { maxWeight: 5, cost: 1350 },
-            { maxWeight: 10, cost: 1650 }, { maxWeight: 15, cost: 2170 },
-            { maxWeight: 20, cost: 2780 }, { maxWeight: 25, cost: 3160 },
-            { maxWeight: 30, cost: 4480 }, { maxWeight: Infinity, cost: 5410 }
+            { maxWeight: 2, cost: 1620 }, 
+            { maxWeight: 5, cost: 1910 },
+            { maxWeight: 10, cost: 2210 }, 
+            { maxWeight: 15, cost: 2730 },
+            { maxWeight: 20, cost: 3340 }, 
+            { maxWeight: 25, cost: 3720 },
+            { maxWeight: 30, cost: 5040 }, 
+            { maxWeight: Infinity, cost: 5970 }
         ];
         const tierGroup3 = [
-            { maxWeight: 2, cost: 940 }, { maxWeight: 5, cost: 1230 },
-            { maxWeight: 10, cost: 1530 }, { maxWeight: 15, cost: 2040 },
-            { maxWeight: 20, cost: 2630 }, { maxWeight: 25, cost: 3020 },
-            { maxWeight: 30, cost: 3680 }, { maxWeight: Infinity, cost: 4470 }
+            { maxWeight: 2, cost: 1500 }, 
+            { maxWeight: 5, cost: 1790 },
+            { maxWeight: 10, cost: 2090 }, 
+            { maxWeight: 15, cost: 2600 },
+            { maxWeight: 20, cost: 3190 }, 
+            { maxWeight: 25, cost: 3580 },
+            { maxWeight: 30, cost: 4240 }, 
+            { maxWeight: Infinity, cost: 5030 }
         ];
         const tierGroup4 = [
-            { maxWeight: 2, cost: 1190 }, { maxWeight: 5, cost: 1480 },
-            { maxWeight: 10, cost: 1790 }, { maxWeight: 15, cost: 2310 },
-            { maxWeight: 20, cost: 2930 }, { maxWeight: 25, cost: 3320 },
-            { maxWeight: 30, cost: 4900 }, { maxWeight: Infinity, cost: 6220 }
+            { maxWeight: 2, cost: 1750 }, 
+            { maxWeight: 5, cost: 2040 },
+            { maxWeight: 10, cost: 2350 }, 
+            { maxWeight: 15, cost: 2870 },
+            { maxWeight: 20, cost: 3490 }, 
+            { maxWeight: 25, cost: 3880 },
+            { maxWeight: 30, cost: 5460 }, 
+            { maxWeight: Infinity, cost: 6780 }
         ];
         const okinawaTiers = [
-            { maxWeight: 2, cost: 1460 }, { maxWeight: 5, cost: 2070 },
-            { maxWeight: 10, cost: 2710 }, { maxWeight: 15, cost: 3360 },
-            { maxWeight: 20, cost: 4030 }, { maxWeight: 25, cost: 4680 },
-            { maxWeight: 30, cost: 7210 }, { maxWeight: Infinity, cost: 8860 }
+            { maxWeight: 2, cost: 2020 }, 
+            { maxWeight: 5, cost: 2630 },
+            { maxWeight: 10, cost: 3270 }, 
+            { maxWeight: 15, cost: 3920 },
+            { maxWeight: 20, cost: 4590 }, 
+            { maxWeight: 25, cost: 5240 },
+            { maxWeight: 30, cost: 7770 }, 
+            { maxWeight: Infinity, cost: 9420 }
         ];
 
         const shippingCosts = {
             'hokkaido': tierGroup1,
             'aomori': tierGroup2, 'akita': tierGroup2, 'iwate': tierGroup2,
+            
             'miyagi': tierGroup3, 'yamagata': tierGroup3, 'fukushima': tierGroup3,
             'tokyo': tierGroup3, 'ibaraki': tierGroup3, 'tochigi': tierGroup3,
             'gunma': tierGroup3, 'saitama': tierGroup3, 'chiba': tierGroup3,
@@ -563,14 +584,18 @@
             'niigata': tierGroup3, 'toyama': tierGroup3, 'ishikawa': tierGroup3,
             'fukui': tierGroup3, 'shizuoka': tierGroup3, 'aichi': tierGroup3,
             'gifu': tierGroup3, 'mie': tierGroup3,
+            
             'kyoto': tierGroup2, 'shiga': tierGroup2, 'nara': tierGroup2,
             'wakayama': tierGroup2, 'osaka': tierGroup2, 'hyogo': tierGroup2,
+            
             'okayama': tierGroup4, 'hiroshima': tierGroup4, 'yamaguchi': tierGroup4,
             'tottori': tierGroup4, 'shimane': tierGroup4, 'kagawa': tierGroup4,
             'tokushima': tierGroup4, 'kochi': tierGroup4, 'ehime': tierGroup4,
+            
             'fukuoka': tierGroup1, 'saga': tierGroup1, 'nagasaki': tierGroup1,
             'kumamoto': tierGroup1, 'oita': tierGroup1, 'miyazaki': tierGroup1,
             'kagoshima': tierGroup1,
+            
             'okinawa': okinawaTiers
         };
 
