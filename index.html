@@ -177,7 +177,7 @@
             background-color: var(--white);
             min-width: 100%;
             box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-            z-index: 1;
+            z-index: 10;
             max-height: 200px;
             overflow-y: auto;
             border-radius: 8px;
@@ -446,20 +446,62 @@
             <form id="jastip-form" onsubmit="return false;">
                 
                 <div class="form-group">
+                    <label for="origin-select">Mau jastip dari mana?</label>
+                    <select id="origin-select" name="origin-select" required onchange="updateItemConfig();">
+                        <option value="" disabled selected>-- Pilih Rute Jastip --</option>
+                        <option value="indo-jpn">Indonesia ke Jepang</option>
+                        <option value="jpn-indo">Jepang ke Indonesia</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="item-type">Barang apa yang mau di jastip?</label>
-                    <select id="item-type" name="item-type" required>
+                    <select id="item-type" name="item-type" required onchange="updateJastipInput()">
                         <option value="" disabled selected>-- Pilih Jenis Barang --</option>
+                        
                         <option value="biasa">Barang Biasa (Baju, Makanan, Skincare, dll)</option>
-                        <option value="handphone">Handphone</option>
-                        <option value="laptop">Laptop atau Tablet</option>
-                        <option value="rokok">Rokok</option>
-                        <option value="rokok-elektrik">Rokok Elektrik</option>
-                        <option value="liquid">Liquid Rokok Elektrik</option>
-                        <option value="sepatu-box">Sepatu dengan Box</option>
-                        <option value="sepatu-nobox">Sepatu tanpa Box</option>
+
+                        <optgroup label="Kategori Elektronik">
+                            <option value="handphone-mati">Handphone (Kondisi Mati)</option>
+                            <option value="handphone-aktif">Handphone (Kondisi Aktif)</option>
+                            <option value="handphone-imei">Handphone + Daftar IMEI</option>
+                            <option value="laptop">Laptop / Tablet</option>
+                            <option value="jam-branded">Jam Tangan (Branded)</option>
+                            <option value="powerbank">Powerbank</option>
+                        </optgroup>
+
+                        <optgroup label="Kategori Perhiasan">
+                            <option value="cincin-emas">Cincin Emas</option>
+                            <option value="cincin-perak">Cincin Perak</option>
+                            <option value="gelang-emas">Gelang / Kalung Emas</option>
+                            <option value="gelang-perak">Gelang / Kalung Perak</option>
+                        </optgroup>
+
+                        <optgroup label="Kategori Rokok & Vape">
+                            <option value="rokok">Rokok</option>
+                            <option value="vape-mod">Vape / Mod / Pod</option>
+                            <option value="liquid">Liquid Rokok Elektrik</option>
+                            <option value="cartridge">Cartridge</option>
+                            <option value="coil-kapas">Coil / Kapas</option>
+                            <option value="toolkit">Toolkit</option>
+                            <option value="baterai">Baterai</option>
+                            <option value="rda">RDA</option>
+                        </optgroup>
+
+                        <optgroup label="Kategori Lainnya">
+                            <option value="sepatu">Sepatu</option>
+                        </optgroup>
                     </select>
                 </div>
                 
+                <div class="form-group" id="box-select-container">
+                    <label for="box-check">Apakah ada box kemasan? (contoh: box sepatu, handphone, laptop, dll)</label>
+                    <select id="box-check" name="box-check">
+                        <option value="tidak">Tidak</option>
+                        <option value="ya">Ya, ada (+¥500)</option>
+                    </select>
+                </div>
+
                 <div id="jastip-details-container">
                     </div>
                 
@@ -468,7 +510,7 @@
                     <div class="dropdown">
                         <input type="text" id="prefecture-search" name="prefecture" placeholder="Cari perfektur..." autocomplete="off" required>
                         <div id="prefecture-dropdown" class="dropdown-content">
-                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -489,6 +531,7 @@
             <div class="modal-body">
                 <div class="result-detail">
                     <p><span>Harga Jastip</span> <span id="harga-jastip-result"></span></p>
+                    <p><span>Biaya Tambahan Box</span> <span id="biaya-box-result"></span></p>
                     <p><span>Estimasi Ongkir</span> <span id="biaya-ongkir-result"></span></p>
                 </div>
                 <div class="total-biaya">
@@ -515,68 +558,42 @@
     </div>
 
     <script>
-        // === [START] PERUBAHAN LOGIKA PERHITUNGAN ===
-
-        // 1. STRUKTUR DATA BARU UNTUK ONGKIR
-        // Data ongkir diubah menjadi array of object untuk setiap prefektur.
-        // Setiap object memiliki `maxWeight` (batas atas berat) dan `cost` (harga).
-        // `Infinity` digunakan untuk menangani berat "di atas" batas terakhir.
+        // === KONFIGURASI DAN DATA ===
 
         const tierGroup1 = [
-            { maxWeight: 2, cost: 2020 }, 
-            { maxWeight: 5, cost: 2300 },
-            { maxWeight: 10, cost: 2610 }, 
-            { maxWeight: 15, cost: 3170 },
-            { maxWeight: 20, cost: 3810 }, 
-            { maxWeight: 25, cost: 4190 },
-            { maxWeight: 30, cost: 5780 }, 
-            { maxWeight: Infinity, cost: 7100 }
+            { maxWeight: 2, cost: 2020 }, { maxWeight: 5, cost: 2300 },
+            { maxWeight: 10, cost: 2610 }, { maxWeight: 15, cost: 3170 },
+            { maxWeight: 20, cost: 3810 }, { maxWeight: 25, cost: 4190 },
+            { maxWeight: 30, cost: 5780 }, { maxWeight: Infinity, cost: 7100 }
         ];
         const tierGroup2 = [
-            { maxWeight: 2, cost: 1620 }, 
-            { maxWeight: 5, cost: 1910 },
-            { maxWeight: 10, cost: 2210 }, 
-            { maxWeight: 15, cost: 2730 },
-            { maxWeight: 20, cost: 3340 }, 
-            { maxWeight: 25, cost: 3720 },
-            { maxWeight: 30, cost: 5040 }, 
-            { maxWeight: Infinity, cost: 5970 }
+            { maxWeight: 2, cost: 1620 }, { maxWeight: 5, cost: 1910 },
+            { maxWeight: 10, cost: 2210 }, { maxWeight: 15, cost: 2730 },
+            { maxWeight: 20, cost: 3340 }, { maxWeight: 25, cost: 3720 },
+            { maxWeight: 30, cost: 5040 }, { maxWeight: Infinity, cost: 5970 }
         ];
         const tierGroup3 = [
-            { maxWeight: 2, cost: 1500 }, 
-            { maxWeight: 5, cost: 1790 },
-            { maxWeight: 10, cost: 2090 }, 
-            { maxWeight: 15, cost: 2600 },
-            { maxWeight: 20, cost: 3190 }, 
-            { maxWeight: 25, cost: 3580 },
-            { maxWeight: 30, cost: 4240 }, 
-            { maxWeight: Infinity, cost: 5030 }
+            { maxWeight: 2, cost: 1500 }, { maxWeight: 5, cost: 1790 },
+            { maxWeight: 10, cost: 2090 }, { maxWeight: 15, cost: 2600 },
+            { maxWeight: 20, cost: 3190 }, { maxWeight: 25, cost: 3580 },
+            { maxWeight: 30, cost: 4240 }, { maxWeight: Infinity, cost: 5030 }
         ];
         const tierGroup4 = [
-            { maxWeight: 2, cost: 1750 }, 
-            { maxWeight: 5, cost: 2040 },
-            { maxWeight: 10, cost: 2350 }, 
-            { maxWeight: 15, cost: 2870 },
-            { maxWeight: 20, cost: 3490 }, 
-            { maxWeight: 25, cost: 3880 },
-            { maxWeight: 30, cost: 5460 }, 
-            { maxWeight: Infinity, cost: 6780 }
+            { maxWeight: 2, cost: 1750 }, { maxWeight: 5, cost: 2040 },
+            { maxWeight: 10, cost: 2350 }, { maxWeight: 15, cost: 2870 },
+            { maxWeight: 20, cost: 3490 }, { maxWeight: 25, cost: 3880 },
+            { maxWeight: 30, cost: 5460 }, { maxWeight: Infinity, cost: 6780 }
         ];
         const okinawaTiers = [
-            { maxWeight: 2, cost: 2020 }, 
-            { maxWeight: 5, cost: 2630 },
-            { maxWeight: 10, cost: 3270 }, 
-            { maxWeight: 15, cost: 3920 },
-            { maxWeight: 20, cost: 4590 }, 
-            { maxWeight: 25, cost: 5240 },
-            { maxWeight: 30, cost: 7770 }, 
-            { maxWeight: Infinity, cost: 9420 }
+            { maxWeight: 2, cost: 2020 }, { maxWeight: 5, cost: 2630 },
+            { maxWeight: 10, cost: 3270 }, { maxWeight: 15, cost: 3920 },
+            { maxWeight: 20, cost: 4590 }, { maxWeight: 25, cost: 5240 },
+            { maxWeight: 30, cost: 7770 }, { maxWeight: Infinity, cost: 9420 }
         ];
 
         const shippingCosts = {
             'hokkaido': tierGroup1,
             'aomori': tierGroup2, 'akita': tierGroup2, 'iwate': tierGroup2,
-            
             'miyagi': tierGroup3, 'yamagata': tierGroup3, 'fukushima': tierGroup3,
             'tokyo': tierGroup3, 'ibaraki': tierGroup3, 'tochigi': tierGroup3,
             'gunma': tierGroup3, 'saitama': tierGroup3, 'chiba': tierGroup3,
@@ -584,44 +601,67 @@
             'niigata': tierGroup3, 'toyama': tierGroup3, 'ishikawa': tierGroup3,
             'fukui': tierGroup3, 'shizuoka': tierGroup3, 'aichi': tierGroup3,
             'gifu': tierGroup3, 'mie': tierGroup3,
-            
             'kyoto': tierGroup2, 'shiga': tierGroup2, 'nara': tierGroup2,
             'wakayama': tierGroup2, 'osaka': tierGroup2, 'hyogo': tierGroup2,
-            
             'okayama': tierGroup4, 'hiroshima': tierGroup4, 'yamaguchi': tierGroup4,
             'tottori': tierGroup4, 'shimane': tierGroup4, 'kagawa': tierGroup4,
             'tokushima': tierGroup4, 'kochi': tierGroup4, 'ehime': tierGroup4,
-            
             'fukuoka': tierGroup1, 'saga': tierGroup1, 'nagasaki': tierGroup1,
             'kumamoto': tierGroup1, 'oita': tierGroup1, 'miyazaki': tierGroup1,
             'kagoshima': tierGroup1,
-            
             'okinawa': okinawaTiers
         };
 
+        // Konfigurasi Item
+        // Price di set 'dynamic' untuk Barang Biasa, angka fix untuk lainnya
         const jastipConfigs = {
-            'biasa': { label: 'Berapa KG berat barangmu?', price: 1500, unit: 'kg', weightPerUnit: 1 },
-            'handphone': { label: 'Berapa unit?', price: 2000, unit: 'unit', weightPerUnit: 0.5 },
-            'laptop': { label: 'Berapa KG berat laptop/tabletmu?', price: 1500, unit: 'kg', weightPerUnit: 1 },
+            'biasa': { label: 'Berapa KG berat barangmu?', price: 'dynamic', unit: 'kg', weightPerUnit: 1 },
+            // Elektronik
+            'handphone-mati': { label: 'Berapa unit?', price: 1500, unit: 'unit', weightPerUnit: 0.5 },
+            'handphone-aktif': { label: 'Berapa unit?', price: 3000, unit: 'unit', weightPerUnit: 0.5 },
+            'handphone-imei': { label: 'Berapa unit?', price: 10000, unit: 'unit', weightPerUnit: 0.5 },
+            'laptop': { label: 'Berapa KG berat laptop/tablet?', price: 1700, unit: 'kg', weightPerUnit: 1 },
+            'jam-branded': { label: 'Berapa unit?', price: 2000, unit: 'unit', weightPerUnit: 0.3 },
+            'powerbank': { label: 'Berapa unit?', price: 1500, unit: 'unit', weightPerUnit: 0.4 },
+            // Perhiasan
+            'cincin-emas': { label: 'Berapa pasang?', price: 2000, unit: 'pasang', weightPerUnit: 0.1 },
+            'cincin-perak': { label: 'Berapa pasang?', price: 1500, unit: 'pasang', weightPerUnit: 0.1 },
+            'gelang-emas': { label: 'Berapa unit?', price: 2000, unit: 'unit', weightPerUnit: 0.1 },
+            'gelang-perak': { label: 'Berapa unit?', price: 1500, unit: 'unit', weightPerUnit: 0.1 },
+            // Rokok & Vape
             'rokok': { label: 'Berapa slop?', price: 2000, unit: 'slop', weightPerUnit: 0.3 },
-            'rokok-elektrik':{ label: 'Berapa unit?', price: 1000, unit: 'unit', weightPerUnit: 0.4 },
-            'liquid': { label: 'Berapa unit?', price: 500, unit: 'unit', weightPerUnit: 0.2 },
-            'sepatu-box': { label: 'Berapa pasang?', price: 2000, unit: 'pasang', weightPerUnit: 1.2 },
-            'sepatu-nobox': { label: 'Berapa pasang?', price: 1500, unit: 'pasang', weightPerUnit: 0.8 }
+            'vape-mod': { label: 'Berapa unit?', price: 1500, unit: 'unit', weightPerUnit: 0.4 },
+            'liquid': { label: 'Berapa botol?', price: 700, unit: 'botol', weightPerUnit: 0.2 },
+            'cartridge': { label: 'Berapa pack?', price: 500, unit: 'pack', weightPerUnit: 0.1 },
+            'coil-kapas': { label: 'Berapa pack?', price: 250, unit: 'pack', weightPerUnit: 0.1 },
+            'toolkit': { label: 'Berapa pack?', price: 700, unit: 'pack', weightPerUnit: 0.3 },
+            'baterai': { label: 'Berapa pasang?', price: 500, unit: 'pasang', weightPerUnit: 0.2 },
+            'rda': { label: 'Berapa unit?', price: 500, unit: 'unit', weightPerUnit: 0.2 },
+            // Lainnya
+            'sepatu': { label: 'Berapa pasang?', price: 2500, unit: 'pasang', weightPerUnit: 1.2 }
         };
 
         const prefectures = Object.keys(shippingCosts);
 
-        // Elemen DOM
+        // DOM Elements
+        const originSelect = document.getElementById('origin-select');
+        const itemTypeSelect = document.getElementById('item-type');
+        const boxCheckSelect = document.getElementById('box-check');
+        const jastipDetailsContainer = document.getElementById('jastip-details-container');
         const prefectureSearchInput = document.getElementById('prefecture-search');
         const prefectureDropdown = document.getElementById('prefecture-dropdown');
         const ongkirInput = document.getElementById('ongkir');
         const modal = document.getElementById('result-modal');
         const imageViewer = document.getElementById('image-viewer');
         const zoomedImage = document.getElementById('zoomed-image');
-        
-        const itemTypeSelect = document.getElementById('item-type');
-        const jastipDetailsContainer = document.getElementById('jastip-details-container');
+
+        // Fungsi Helper untuk Update Harga Dynamic (Jika User Ganti Origin)
+        function updateItemConfig() {
+            // Trigger update input jika sudah ada yang dipilih agar harga ter-refresh di logic nanti
+            if(itemTypeSelect.value) {
+                updateJastipInput();
+            }
+        }
 
         function updateJastipInput() {
             const selectedType = itemTypeSelect.value;
@@ -631,16 +671,15 @@
                 jastipDetailsContainer.innerHTML = `
                     <div class="form-group">
                         <label for="jastip-quantity">${config.label}</label>
-                        <input type="number" id="jastip-quantity" name="jastip-quantity" placeholder="Contoh: 1" min="0" step="any" required>
+                        <input type="number" id="jastip-quantity" name="jastip-quantity" placeholder="Masukan angka..." min="0" step="any" required>
                     </div>
                 `;
             } else {
                 jastipDetailsContainer.innerHTML = '';
             }
         }
-        
-        itemTypeSelect.addEventListener('change', updateJastipInput);
 
+        // Dropdown Search Logic
         function populateDropdown(filter = '') {
             prefectureDropdown.innerHTML = '';
             const filteredPrefectures = prefectures.filter(p => p.toLowerCase().includes(filter.toLowerCase()));
@@ -673,15 +712,13 @@
             }
         });
 
-        // 2. MODIFIKASI FUNGSI `selectPrefecture`
-        // Saat prefektur dipilih, tampilkan harga terendah (untuk berat s.d. 2kg)
         function selectPrefecture(prefecture) {
             prefectureSearchInput.value = prefecture.charAt(0).toUpperCase() + prefecture.slice(1);
             prefectureDropdown.style.display = 'none';
             
             const tiers = shippingCosts[prefecture.toLowerCase()];
             if (tiers && tiers.length > 0) {
-                const baseCost = tiers[0].cost; // Ambil biaya pertama (termurah)
+                const baseCost = tiers[0].cost;
                 ongkirInput.value = formatRupiah(baseCost) + ' (untuk ~2kg)';
             }
         }
@@ -694,70 +731,101 @@
             }).format(number).replace('JPY', '¥');
         }
 
-        // 3. FUNGSI BARU UNTUK MENDAPATKAN ONGKIR BERDASARKAN BERAT
         function getCostByWeight(weight, tiers) {
-            if (!tiers) return null; // Jika data tier tidak ditemukan
-
-            // Cari tier pertama yang `maxWeight`-nya lebih besar atau sama dengan berat estimasi
+            if (!tiers) return null;
             for (const tier of tiers) {
                 if (weight <= tier.maxWeight) {
                     return tier.cost;
                 }
             }
-            return null; // Seharusnya tidak terjadi jika ada tier Infinity
+            return null;
         }
 
-        // 4. FUNGSI PERHITUNGAN UTAMA DIMODIFIKASI
+        // === FUNGSI UTAMA HITUNG TOTAL ===
         function calculateTotal() {
-            // Data untuk Ongkir
+            // 1. Ambil Nilai Input
+            const origin = originSelect.value;
+            const itemType = itemTypeSelect.value;
+            const boxStatus = boxCheckSelect.value;
             const prefecture = prefectureSearchInput.value.toLowerCase();
+            const quantityInput = document.getElementById('jastip-quantity');
+            
+            // 2. Validasi
+            if (!origin) {
+                alert('Mohon pilih asal jastip (Indonesia ke Jepang atau sebaliknya).');
+                return;
+            }
+            if (!itemType || !quantityInput) {
+                alert('Mohon pilih jenis barang dan masukkan jumlahnya.');
+                return;
+            }
+            const quantity = parseFloat(quantityInput.value);
+            if (isNaN(quantity) || quantity <= 0) {
+                alert('Jumlah barang harus lebih dari 0.');
+                return;
+            }
             const priceTiers = shippingCosts[prefecture];
-            
-            // Data untuk Harga Jastip
-            const selectedType = itemTypeSelect.value;
-            const jastipQuantityInput = document.getElementById('jastip-quantity');
-            
-            // Validasi Input
-            if (!selectedType || !jastipQuantityInput) {
-                alert('Mohon pilih jenis barang terlebih dahulu.');
-                return;
-            }
-            
-            const jastipQuantity = parseFloat(jastipQuantityInput.value);
-
-            if (!priceTiers || isNaN(jastipQuantity) || jastipQuantity <= 0) {
-                alert('Mohon isi semua kolom (jenis barang, jumlah/berat, dan perfektur) dengan benar.');
+            if (!priceTiers) {
+                alert('Mohon pilih provinsi tujuan pengiriman yang valid.');
                 return;
             }
 
-            const config = jastipConfigs[selectedType];
+            // 3. Tentukan Harga Barang per Unit/KG
+            const config = jastipConfigs[itemType];
+            let itemPrice = config.price;
 
-            // 1. Hitung Harga Jastip
-            const hargaJastip = jastipQuantity * config.price;
+            // Logika Harga Dinamis untuk "Barang Biasa"
+            if (itemType === 'biasa') {
+                if (origin === 'indo-jpn') {
+                    itemPrice = 1600;
+                } else if (origin === 'jpn-indo') {
+                    itemPrice = 1700;
+                }
+            }
 
-            // 2. Hitung Estimasi Berat Total
-            const estimatedWeight = jastipQuantity * config.weightPerUnit;
+            // 4. Hitung Harga Dasar Jastip
+            const totalItemPrice = itemPrice * quantity;
 
-            // 3. Hitung Ongkir berdasarkan estimasi berat menggunakan fungsi baru
+            // 5. Hitung Biaya Tambahan Box
+            let boxCost = 0;
+            if (boxStatus === 'ya') {
+                // Asumsi +500 dikalikan jumlah barang (per unit kena box),
+                // atau jika barang KG (biasa/laptop), +500 per kg-nya (karena volume).
+                // Berdasarkan prompt "kalkulasi otomatis ditambahkan 500", saya buat per item input.
+                boxCost = 500 * quantity;
+            }
+
+            // 6. Hitung Estimasi Berat Total untuk Ongkir
+            const estimatedWeight = quantity * config.weightPerUnit;
+
+            // 7. Hitung Ongkir
             const finalOngkir = getCostByWeight(estimatedWeight, priceTiers);
             
             if (finalOngkir === null) {
-                alert('Tidak dapat menghitung ongkir. Periksa kembali input Anda.');
+                alert('Tidak dapat menghitung ongkir. Berat melebihi batas yang tersedia.');
                 return;
             }
 
-            // 4. Hitung Total Biaya
-            const totalBiaya = hargaJastip + finalOngkir;
+            // 8. Total Akhir
+            const grandTotal = totalItemPrice + boxCost + finalOngkir;
 
-            // Tampilkan hasil di modal
-            document.getElementById('harga-jastip-result').textContent = formatRupiah(hargaJastip);
+            // 9. Tampilkan di Modal
+            document.getElementById('harga-jastip-result').textContent = formatRupiah(totalItemPrice);
+            
+            // Tampilkan baris box di modal jika ada
+            const boxRow = document.getElementById('biaya-box-result').parentElement;
+            if (boxCost > 0) {
+                document.getElementById('biaya-box-result').textContent = formatRupiah(boxCost);
+                boxRow.style.display = 'flex';
+            } else {
+                boxRow.style.display = 'none';
+            }
+
             document.getElementById('biaya-ongkir-result').textContent = formatRupiah(finalOngkir);
-            document.getElementById('total-biaya-result').textContent = formatRupiah(totalBiaya);
+            document.getElementById('total-biaya-result').textContent = formatRupiah(grandTotal);
 
             modal.classList.add('show');
         }
-
-        // === [END] PERUBAHAN LOGIKA PERHITUNGAN ===
 
         function closeModal() {
             modal.classList.remove('show');
@@ -771,7 +839,8 @@
         function closeImageViewer() {
             imageViewer.classList.remove('show');
         }
-
+        
+        // Init
         populateDropdown();
     </script>
 </body>
