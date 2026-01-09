@@ -302,6 +302,12 @@
             font-weight: 600;
             color: var(--primary-blue);
         }
+        
+        /* Tambahan style agar teks ongkir panjang bisa rapi (rata kanan atau wrap) */
+        #biaya-ongkir-result {
+            text-align: right;
+            max-width: 60%;
+        }
 
         .total-biaya {
             background-color: var(--light-gray);
@@ -503,12 +509,12 @@
                 </div>
 
                 <div id="jastip-details-container">
-                    </div>
+                </div>
                 
                 <div class="form-group">
-                    <label for="prefecture-search">Dikirim ke perfektur mana?</label>
+                    <label for="prefecture-search">Dikirim ke perfektur mana? atau di kirim ke Indonesia?</label>
                     <div class="dropdown">
-                        <input type="text" id="prefecture-search" name="prefecture" placeholder="Cari perfektur..." autocomplete="off" required>
+                        <input type="text" id="prefecture-search" name="prefecture" placeholder="Cari perfektur atau pilih kirim ke Indonesia..." autocomplete="off" required>
                         <div id="prefecture-dropdown" class="dropdown-content">
                         </div>
                     </div>
@@ -612,23 +618,18 @@
             'okinawa': okinawaTiers
         };
 
-        // Konfigurasi Item
-        // Price di set 'dynamic' untuk Barang Biasa, angka fix untuk lainnya
         const jastipConfigs = {
             'biasa': { label: 'Berapa KG berat barangmu?', price: 'dynamic', unit: 'kg', weightPerUnit: 1 },
-            // Elektronik
             'handphone-mati': { label: 'Berapa unit?', price: 1500, unit: 'unit', weightPerUnit: 0.5 },
             'handphone-aktif': { label: 'Berapa unit?', price: 3000, unit: 'unit', weightPerUnit: 0.5 },
             'handphone-imei': { label: 'Berapa unit?', price: 10000, unit: 'unit', weightPerUnit: 0.5 },
             'laptop': { label: 'Berapa KG berat laptop/tablet?', price: 1700, unit: 'kg', weightPerUnit: 1 },
             'jam-branded': { label: 'Berapa unit?', price: 2000, unit: 'unit', weightPerUnit: 0.3 },
             'powerbank': { label: 'Berapa unit?', price: 1500, unit: 'unit', weightPerUnit: 0.4 },
-            // Perhiasan
             'cincin-emas': { label: 'Berapa pasang?', price: 2000, unit: 'pasang', weightPerUnit: 0.1 },
             'cincin-perak': { label: 'Berapa pasang?', price: 1500, unit: 'pasang', weightPerUnit: 0.1 },
             'gelang-emas': { label: 'Berapa unit?', price: 2000, unit: 'unit', weightPerUnit: 0.1 },
             'gelang-perak': { label: 'Berapa unit?', price: 1500, unit: 'unit', weightPerUnit: 0.1 },
-            // Rokok & Vape
             'rokok': { label: 'Berapa slop?', price: 2000, unit: 'slop', weightPerUnit: 0.3 },
             'vape-mod': { label: 'Berapa unit?', price: 1500, unit: 'unit', weightPerUnit: 0.4 },
             'liquid': { label: 'Berapa botol?', price: 700, unit: 'botol', weightPerUnit: 0.2 },
@@ -637,7 +638,6 @@
             'toolkit': { label: 'Berapa pack?', price: 700, unit: 'pack', weightPerUnit: 0.3 },
             'baterai': { label: 'Berapa pasang?', price: 500, unit: 'pasang', weightPerUnit: 0.2 },
             'rda': { label: 'Berapa unit?', price: 500, unit: 'unit', weightPerUnit: 0.2 },
-            // Lainnya
             'sepatu': { label: 'Berapa pasang?', price: 2500, unit: 'pasang', weightPerUnit: 1.2 }
         };
 
@@ -657,7 +657,6 @@
 
         // Fungsi Helper untuk Update Harga Dynamic (Jika User Ganti Origin)
         function updateItemConfig() {
-            // Trigger update input jika sudah ada yang dipilih agar harga ter-refresh di logic nanti
             if(itemTypeSelect.value) {
                 updateJastipInput();
             }
@@ -682,6 +681,19 @@
         // Dropdown Search Logic
         function populateDropdown(filter = '') {
             prefectureDropdown.innerHTML = '';
+
+            // 1. Opsi Kirim ke Indonesia (Selalu muncul jika sesuai filter atau filter kosong)
+            const indoText = "Kirim ke Indonesia";
+            if (indoText.toLowerCase().includes(filter.toLowerCase())) {
+                const aIndo = document.createElement('a');
+                aIndo.href = '#';
+                aIndo.textContent = indoText;
+                aIndo.style.fontWeight = 'bold';
+                aIndo.onclick = (e) => { e.preventDefault(); selectPrefecture('indonesia'); };
+                prefectureDropdown.appendChild(aIndo);
+            }
+
+            // 2. Opsi Perfektur Jepang
             const filteredPrefectures = prefectures.filter(p => p.toLowerCase().includes(filter.toLowerCase()));
             
             filteredPrefectures.forEach(pref => {
@@ -713,13 +725,19 @@
         });
 
         function selectPrefecture(prefecture) {
-            prefectureSearchInput.value = prefecture.charAt(0).toUpperCase() + prefecture.slice(1);
-            prefectureDropdown.style.display = 'none';
-            
-            const tiers = shippingCosts[prefecture.toLowerCase()];
-            if (tiers && tiers.length > 0) {
-                const baseCost = tiers[0].cost;
-                ongkirInput.value = formatRupiah(baseCost) + ' (untuk ~2kg)';
+            if (prefecture === 'indonesia') {
+                prefectureSearchInput.value = "Kirim ke Indonesia";
+                prefectureDropdown.style.display = 'none';
+                ongkirInput.value = "Akan mengikuti ekspedisi pengiriman di indonesia yang akan dipilih";
+            } else {
+                prefectureSearchInput.value = prefecture.charAt(0).toUpperCase() + prefecture.slice(1);
+                prefectureDropdown.style.display = 'none';
+                
+                const tiers = shippingCosts[prefecture.toLowerCase()];
+                if (tiers && tiers.length > 0) {
+                    const baseCost = tiers[0].cost;
+                    ongkirInput.value = formatRupiah(baseCost) + ' (untuk ~2kg)';
+                }
             }
         }
         
@@ -747,8 +765,12 @@
             const origin = originSelect.value;
             const itemType = itemTypeSelect.value;
             const boxStatus = boxCheckSelect.value;
-            const prefecture = prefectureSearchInput.value.toLowerCase();
+            const prefectureValue = prefectureSearchInput.value;
             const quantityInput = document.getElementById('jastip-quantity');
+            
+            // Check specific case
+            const isIndonesia = prefectureValue === "Kirim ke Indonesia";
+            const prefectureKey = prefectureValue.toLowerCase();
             
             // 2. Validasi
             if (!origin) {
@@ -764,8 +786,11 @@
                 alert('Jumlah barang harus lebih dari 0.');
                 return;
             }
-            const priceTiers = shippingCosts[prefecture];
-            if (!priceTiers) {
+
+            const priceTiers = shippingCosts[prefectureKey];
+
+            // Validasi: Jika bukan Kirim ke Indonesia DAN tier tidak ditemukan, error
+            if ((!isIndonesia && !priceTiers)) {
                 alert('Mohon pilih provinsi tujuan pengiriman yang valid.');
                 return;
             }
@@ -789,21 +814,27 @@
             // 5. Hitung Biaya Tambahan Box
             let boxCost = 0;
             if (boxStatus === 'ya') {
-                // Asumsi +500 dikalikan jumlah barang (per unit kena box),
-                // atau jika barang KG (biasa/laptop), +500 per kg-nya (karena volume).
-                // Berdasarkan prompt "kalkulasi otomatis ditambahkan 500", saya buat per item input.
                 boxCost = 500 * quantity;
             }
 
-            // 6. Hitung Estimasi Berat Total untuk Ongkir
-            const estimatedWeight = quantity * config.weightPerUnit;
+            // 6. Hitung Estimasi Berat Total & Ongkir
+            let finalOngkir = 0;
+            let ongkirDisplayText = "";
 
-            // 7. Hitung Ongkir
-            const finalOngkir = getCostByWeight(estimatedWeight, priceTiers);
-            
-            if (finalOngkir === null) {
-                alert('Tidak dapat menghitung ongkir. Berat melebihi batas yang tersedia.');
-                return;
+            if (isIndonesia) {
+                // Logic khusus Indonesia: Ongkir dianggap 0 di total, teks diubah
+                finalOngkir = 0;
+                ongkirDisplayText = "Akan mengikuti ekspedisi pengiriman di indonesia yang akan dipilih";
+            } else {
+                // Logic Perfektur Jepang
+                const estimatedWeight = quantity * config.weightPerUnit;
+                finalOngkir = getCostByWeight(estimatedWeight, priceTiers);
+                
+                if (finalOngkir === null) {
+                    alert('Tidak dapat menghitung ongkir. Berat melebihi batas yang tersedia.');
+                    return;
+                }
+                ongkirDisplayText = formatRupiah(finalOngkir);
             }
 
             // 8. Total Akhir
@@ -821,7 +852,7 @@
                 boxRow.style.display = 'none';
             }
 
-            document.getElementById('biaya-ongkir-result').textContent = formatRupiah(finalOngkir);
+            document.getElementById('biaya-ongkir-result').textContent = ongkirDisplayText;
             document.getElementById('total-biaya-result').textContent = formatRupiah(grandTotal);
 
             modal.classList.add('show');
